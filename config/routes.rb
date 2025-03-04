@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  # ✅ Authentication Routes
   post "/signup", to: "auth#signup"
   post "/login", to: "auth#login"
 
@@ -6,5 +7,11 @@ Rails.application.routes.draw do
   match "/login", to: "auth#login", via: [:options, :post]
   match "/signup", to: "auth#signup", via: [:options, :post]
 
+  # ✅ User Profile Route
   get "/profile", to: "users#profile"
+
+  # ✅ Posts & Comments API Routes
+  resources :posts do
+    resources :comments, only: [:create, :destroy]  # Comments are nested under posts
+  end
 end
