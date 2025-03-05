@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-    before_action :authorize_request, except: [:index, :show] # Protect write operations
+    before_action :authenticate_request, except: [:index, :show] # Protect write operations
   
     # ✅ Get All Posts
     def index
@@ -51,7 +51,7 @@ class PostsController < ApplicationController
   
     # ✅ Strong Parameters
     def post_params
-      params.require(:post).permit(:title, :description, :category)
+      params.require(:post).permit(:title, :content, :category, :isTrending)
     end
   end
   

@@ -14,4 +14,6 @@ Rails.application.routes.draw do
   resources :posts do
     resources :comments, only: [:create, :destroy]  # Comments are nested under posts
   end
+
+  resources :comments, only: [:destroy]
 end

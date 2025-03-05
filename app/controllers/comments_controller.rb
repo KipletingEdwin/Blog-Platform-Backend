@@ -1,12 +1,24 @@
 class CommentsController < ApplicationController
-    before_action :authorize_request
+    before_action :authenticate_request
+
+      # ✅ Get All Comments for a Post
+  def index
+    post = Post.find_by(id: params[:post_id])
+    if post
+      comments = post.comments.order(created_at: :asc)
+      render json: comments, status: :ok
+    else
+      render json: { error: "Post not found" }, status: :not_found
+    end
+  end
   
     # ✅ Create a Comment
     def create
       post = Post.find_by(id: params[:post_id])
       return render json: { error: "Post not found" }, status: :not_found unless post
   
-      comment = post.comments.build(comment_params.merge(user_id: @current_user.id))
+      comment = post.comments.build(text: comment_params[:text], user_id: @current_user.id)
+
   
       if comment.save
         render json: comment, status: :created

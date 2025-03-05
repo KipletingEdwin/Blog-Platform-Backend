@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::API 
-    before_action :authenticate_request
+    # before_action :authenticate_request
   
     private
   
@@ -20,5 +20,9 @@ class ApplicationController < ActionController::API
         render json: { error: "Unauthorized: Token missing" }, status: :unauthorized
       end
     end
+
+    def current_user
+        @current_user
+      end
   end
   
