@@ -1,5 +1,6 @@
 class PostsController < ApplicationController
     before_action :authenticate_request, except: [:index, :show] # Protect write operations
+
   
     # ✅ Get All Posts
     def index
@@ -19,16 +20,24 @@ class PostsController < ApplicationController
   
     # ✅ Create a New Post
     def create
-      post = current_user.posts.build(post_params)
+      puts "🔍 Received Post Params: #{params.inspect}"  # Debugging Line
+    
+      # ✅ Make sure we reference `content`, NOT `text`
+      post = @current_user.posts.build(post_params)
+    
       if post.save
         render json: post, status: :created
       else
         render json: { error: post.errors.full_messages }, status: :unprocessable_entity
       end
     end
+    
+    
   
     # ✅ Update a Post
     def update
+      # if post.user_id == current_user.id  #Check ownership
+        
       post = current_user.posts.find_by(id: params[:id])
       if post&.update(post_params)
         render json: post, status: :ok

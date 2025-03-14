@@ -12,8 +12,8 @@ Rails.application.routes.draw do
 
   # ✅ Posts & Comments API Routes
   resources :posts do
-    resources :comments, only: [:create, :destroy]  # Comments are nested under posts
+    resources :comments, only: [:index, :create]  # Comments are nested under posts
   end
 
-  resources :comments, only: [:destroy]
+  resources :comments, only: [:destroy, :update]
 end

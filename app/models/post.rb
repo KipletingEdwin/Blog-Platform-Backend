@@ -3,5 +3,5 @@ class Post < ApplicationRecord
   has_many :comments, dependent: :destroy  # ✅ Delete comments when a post is deleted
 
   validates :title, presence: true
-  validates :text, presence: true
+  validates :content, presence: true
 end

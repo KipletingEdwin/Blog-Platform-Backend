@@ -26,16 +26,41 @@ class CommentsController < ApplicationController
         render json: { error: comment.errors.full_messages }, status: :unprocessable_entity
       end
     end
-  
-    # ✅ Delete a Comment
-    def destroy
-      comment = Comment.find_by(id: params[:id], post_id: params[:post_id])
-      if comment&.destroy
-        render json: { message: "Comment deleted successfully" }, status: :ok
-      else
-        render json: { error: "Unable to delete comment" }, status: :forbidden
-      end
+
+      # ✅ Update Comment
+  def update
+    comment = Comment.find_by(id: params[:id])
+
+    if comment.nil?
+      return render json: { error: "Comment not found" }, status: :not_found
     end
+
+    if comment.update(comment_params)
+      render json: comment, status: :ok
+    else
+      render json: { error: comment.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+  
+  # ✅ Delete Comment
+  def destroy
+    comment = Comment.find_by(id: params[:id])
+
+    if comment.nil?
+      return render json: { error: "Comment not found" }, status: :not_found
+    end
+
+    # ✅ Ensure only the comment owner can delete
+    if comment.user_id != @current_user.id
+      return render json: { error: "Unauthorized: You can only delete your own comments" }, status: :forbidden
+    end
+
+    if comment.destroy
+      render json: { message: "Comment deleted successfully" }, status: :ok
+    else
+      render json: { error: "Unable to delete comment" }, status: :unprocessable_entity
+    end
+  end
   
     private
   

@@ -4,9 +4,6 @@ class AuthController < ApplicationController
   require 'json_web_token'
 
 
-
-
-
   # ✅ Sign up new users
   def signup
     user = User.new(user_params)
