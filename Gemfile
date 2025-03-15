@@ -8,7 +8,7 @@ gem "sqlite3", ">= 2.1"
 gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
-gem 'pg'
+gem 'pg', '~> 1.5'
 
 gem 'bcrypt', '~> 3.1.7'
 

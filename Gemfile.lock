@@ -331,7 +331,7 @@ DEPENDENCIES
   debug
   jwt
   kamal
-  pg
+  pg (~> 1.5)
   puma (>= 5.0)
   rack-cors
   rails (~> 8.0.1)
