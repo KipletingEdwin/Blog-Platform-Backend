@@ -4,33 +4,36 @@
 ARG RUBY_VERSION=3.2.3
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
-# Rails app lives here
+# Set working directory
 WORKDIR /rails
 
-# Install base packages
+# Install essential packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y \
+    curl libjemalloc2 libvips sqlite3 \
+    build-essential git pkg-config \
+    libpq-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Set production environment
+# Set production environment variables
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development"
 
-# Throw-away build stage to reduce size of final image
+# Create a build stage to install dependencies
 FROM base AS build
 
-# ✅ Install PostgreSQL development libraries (Fix for `pg` gem issue)
-RUN apt-get update -qq && apt-get install -y libpq-dev build-essential git pkg-config
+# Install PostgreSQL client library
+RUN apt-get update -qq && apt-get install -y libpq-dev
 
-# ✅ Install Bundler and update gems
+# Install Bundler (if needed)
 RUN gem install bundler -v 2.3.26
 
-# Copy Gemfile first to leverage Docker cache
+# Copy Gemfile first (Docker cache optimization)
 COPY Gemfile Gemfile.lock ./
 
-# ✅ Run `bundle install` without cache and ensure PostgreSQL gem is properly installed
+# Install gems (including pg)
 RUN bundle install --no-cache --jobs 4 --retry 3 && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
@@ -41,24 +44,24 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Final stage for app image
+# Final runtime image
 FROM base
 
-# Copy built artifacts: gems, application
+# Copy built artifacts (gems & application)
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
-# Run and own only the runtime files as a non-root user for security
+# Ensure Rails runs as a non-root user
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
     chown -R rails:rails db log storage tmp
 USER 1000:1000
 
-# ✅ Set correct Rails entrypoint
+# Entry point for Docker container
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# ✅ Expose correct Rails port
+# Expose the correct Rails port
 EXPOSE 3000
 
-# ✅ Start the Rails server properly
+# Start Rails server
 CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]

@@ -16,8 +16,10 @@ test:
 
 production:
   <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
   database: my_march_production
   username: <%= ENV['DB_USERNAME'] %>
   password: <%= ENV['DB_PASSWORD'] %>
   host: <%= ENV['DB_HOST'] %>
-  port: 5432
+  port: <%= ENV['DB_PORT'] || 5432 %>
+
