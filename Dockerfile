@@ -28,6 +28,15 @@ ENV RAILS_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
+# Ensure PostgreSQL development libraries are installed
+RUN apt-get update -qq && apt-get install -y libpq-dev
+
+# Install Gems
+RUN bundle install --no-cache
+
+
+
+
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git pkg-config && \
