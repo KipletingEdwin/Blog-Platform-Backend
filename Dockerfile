@@ -1,13 +1,6 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t my_march .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name my_march my_march
-
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
-
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.2.3
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
@@ -28,23 +21,17 @@ ENV RAILS_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-# Ensure PostgreSQL development libraries are installed
-RUN apt-get update -qq && apt-get install -y libpq-dev
+# ✅ Install PostgreSQL development libraries (Fix for `pg` gem issue)
+RUN apt-get update -qq && apt-get install -y libpq-dev build-essential git pkg-config
 
-# Install Gems
-RUN bundle install --no-cache
+# ✅ Install Bundler and update gems
+RUN gem install bundler -v 2.3.26
 
-
-
-
-# Install packages needed to build gems
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git pkg-config && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
-# Install application gems
+# Copy Gemfile first to leverage Docker cache
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
+
+# ✅ Run `bundle install` without cache and ensure PostgreSQL gem is properly installed
+RUN bundle install --no-cache --jobs 4 --retry 3 && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
@@ -53,9 +40,6 @@ COPY . .
 
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
-
-
-
 
 # Final stage for app image
 FROM base
@@ -70,9 +54,11 @@ RUN groupadd --system --gid 1000 rails && \
     chown -R rails:rails db log storage tmp
 USER 1000:1000
 
-# Entrypoint prepares the database.
+# ✅ Set correct Rails entrypoint
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# ✅ Expose correct Rails port
+EXPOSE 3000
+
+# ✅ Start the Rails server properly
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
