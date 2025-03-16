@@ -1,4 +1,5 @@
-extensions
+extensions ||= []
+
 
 ActiveRecord::Schema[8.0].define(version: 2025_03_04_133041) do
   # These are extensions that must be enabled in order to support this database
