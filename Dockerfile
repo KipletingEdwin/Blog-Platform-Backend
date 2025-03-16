@@ -11,7 +11,7 @@ WORKDIR /rails
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
     curl libjemalloc2 libvips sqlite3 \
-    build-essential git pkg-config \
+    build-essential git libpq-dev pkg-config \
     libpq-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
