@@ -14,6 +14,14 @@ test:
   <<: *default
   database: my_march_test
 
-production:
+development:
   <<: *default
-  url: <%= ENV['DATABASE_URL'] %>
+  database: my_march_development
+  username: postgres
+  password: "edwinrotich"
+  host: 127.0.0.1
+
+
+  cable:
+    <<: *default
+    database: my_march_cable_production
